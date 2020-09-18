@@ -1,0 +1,38 @@
+流：代表任何有能力输出数据的数据源对象或者有能力接收数据的数据端对象。流的本质就是输入输出。
+	按照处理的数据类型，可以将流分为字节流和字符流。
+	字节流：以字节为单位，可以处理二进制文件，比如ppt，视频，图像等
+	字符流：以字符（2个字节为基本单位），可以处理纯文本文件，比如包含中文字符的文件。
+	4个基本的抽象流类型，所有的流都继承这四个。
+　　　　　　　　　　　输入流　　　　　　输出流
+　　　　　　字节流　　InputStream　　outputStream
+　　　　　　字符流　　Reader　　　　　　Writer
+	IO流的特性：先进先出、顺序存取，只读或者只写
+	
+## 字节流
+		ByteArrayInputStream：字节数组输入流，该类的功能就是从字节数组(byte[])中进行以字节为单位的读取，也就是将资源文件都以字节的形式存入到该类中的字节数组中去
+　　　　PipedInputStream：管道字节输入流，它和PipedOutputStream一起使用，能实现多线程间的管道通信。
+　　　　FilterInputStream ：装饰者模式中处于装饰者，具体的装饰者都要继承它，所以在该类的子类下都是用来装饰别的流的，也就是处理类
+　　　　BufferedInputStream：缓冲流，对处理流进行装饰，增强，内部会有一个缓存区，用来存放字节，每次都是将缓存区存满然后发送，而不是一个字节或两个字节这样发送。效率更高
+　　　　DataInputStream：数据输入流，它是用来装饰其它输入流，它“允许应用程序以与机器无关方式从底层输入流中读取基本 Java 数据类型”
+　　　　FileInputSream：文件输入流。它通常用于对文件进行读取操作。直接操作文件流，与OS底层交互。因此他们也被称为节点流。需要关闭流对象，因为java垃圾回收器不会主动回收。不过在Java7之后，可以在 try() 括号中打开流，最后程序会自动关闭流对象，不再需要显示地close。
+　　　　File：对指定目录的文件进行操作，具体可以查看讲解File的博文。注意，该类虽然是在IO包下，但是并不继承自四大基础类。
+　　　　ObjectInputStream：对象输入流，用来提供对“基本数据或对象”的持久存储。通俗点讲，也就是能直接传输对象（反序列化中使用），
+其中：FileInputStream、FileOutputStream 文件的二进制输入输出流
+	1. read()、write():按字节读写
+	2. Bytes byte[] = new Bytes[1024];,read(byte)、write(byte):按字节数组大小读取
+	
+	
+## 字符流
+	Reader 是所有的输入字符流的父类，它是一个抽象类。
+	CharReader、StringReader 是两种基本的介质流，它们分别将从Char 数组、String中读取数据。
+	PipedReader 是从与其它线程共用的管道中读取数据。
+	BufferedReader 很明显就是一个装饰器，它和其子类负责装饰其它Reader 对象。可以实现按行读写：readLine（）； writeLine（）；
+	FilterReader 是所有自定义具体装饰流的父类，其子类PushbackReader 对Reader对象进行装饰，会增加一个行号。
+	InputStreamReader 是一个连接字节流和字符流的桥梁，它将字节流转变为字符流。 InputStreamReader in = new InputStreamReader(FileInputStream, "编码格式");如果不设定编码格式可能会出现乱码。
+	FileReader 可以说是一个达到此功能、常用的工具类，在其源代码中明显使用了将FileInputStream 转变为Reader 的方法。直接操作文件流，与OS底层交互。因此他们也被称为节点流。需要关闭流对象，因为java垃圾回收器不会主动回收。不过在Java7之后，可以在 try() 括号中打开流，最后程序会自动关闭流对象，不再需要显示地close。
+
+Scanner类：用于扫描输入的文本
+		Scanner s = new Scanner(System.in);
+		if(s.hasNext()) s.next();
+		if(s.hasNextLine()) s.nextLine();
+		if(s.hasNextInt()) s.nextInt();....

@@ -1,0 +1,32 @@
+# 反射
+	java的反射机制是指在运行状态下。对于任意一个类，都能够知道该类所有的属性和方法；对于任意一个对象，都能调用它所有的属性和方法。这种动态获取类信息和动态调用对象方法的机制称为java的反射机制。
+	在JVM中，new关键字会让虚拟机进行类加载。但是对于没有加载过的类，有的时候会在运行过程中需要根据实际需要去动态的加载驱动类。即根据类的全限定名来创建对象，类名可以从配置文件中获取，不需要new，解耦合。
+## Class类
+	1. Class cla = Class.forName("类的全限定名");
+	2. Class cla = 该类的一个实例.getClass();
+	3. Class cla = 类名.class;
+	代表类的实体，在运行的Java应用程序中表示类和接口。
+	1. getName()：获得类的完整名字。
+　　3. getDeclaredFields()：获得类的所有属性。包括private 声明的和继承类
+　　4. getMethods()：获得类的public类型的方法。
+　　5. getDeclaredMethods()：获得类的所有方法。包括private 声明的和继承类
+　　6. Method method = cla.getMethod(String name, Class[] parameterTypes)：获得类的特定方法，name参数指定方法的名字，parameterTypes 参数指定方法的参数类型。
+　　7. getConstructors()：获得类的public类型的构造方法。
+　　8. getConstructor(Class[] parameterTypes)：获得类的特定构造方法，parameterTypes 参数指定构造方法的参数类型。
+　　9. Object ob = cla.newInstance()：通过类的不带参数的构造方法创建这个类的一个对象ob, 之后再强制类型转换得到对象object。
+	10.getClassLoader():获取类的加载器
+	11.Class.forName(String className):根据类名返回类的对象
+## Field类
+    代表类的成员变量（成员变量也称为类的属性）
+	1. Field field = cla.getField(String name)： 获得某个公有属性的对象
+	2. cla.getFields()：获得类的public类型的属性。
+	3. cla.getDeclaredField(String name)： 获得某个属性的对象
+	4. cla.getDeclaredFields()：获得类的所有属性对象。
+	5. field.get(Object obj)： 获得obj中对应的属性值
+## Method类
+	代表类的方法
+	1. method.invoke(Object obj, Object... args):传递object对象及参数调用该对象对应的方法
+## Constructor类
+	代表类的构造方法
+	1. newInstance(Object... initargs): 根据传递的参数创建类的对象
+	

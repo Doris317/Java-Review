@@ -1,0 +1,100 @@
+## 控制反转IOC：目的是解耦合
+	谁控制了谁：以前由对象通过new去主动创建依赖对象，而spring是通过组件容器来创建和管理对象并在需要的地方注入对象。也就是容器控制了依赖对象的管理权
+	反转：之前是对象主动去寻找依赖对象，现在是对象依赖容器去寻找依赖对象，也就是被动接受依赖对象
+	体现了好莱坞反转：别找我们，我们找你
+##依赖注入DI
+	组件之间的依赖关系由容器在运行时确定。应用程序依赖IOC容器来提供对象所需要的外部资源
+	Bean的属性有byname、bytype和constructor
+	1、配置注入：1）构造注入：<construct-arg>通过name指明注入的对象来实现构造器注入
+				 2）setter注入：<property>：spring会根据name指定的值将单词首字母大写然后加上set去寻找set方法注入。该方法注入需要对象的类一定要有无参构造函数或者默认的无参构造函数
+	2、注解注入：1）@Resource java注解，默认根据ByName方法寻找首字母必须是大写的，如果找不到再根据byType去寻找，如果有重复的bytype结果根据@Qualifier指定的name的那一个进行注入
+				 2）@Autowired：Spring注解，默认根据byType的方式去寻找，重复的再根据ByName的方式寻找注入。
+
+##面向切面AOP：应用业务逻辑和系统服务分开，比如常见的日志、权限验证、事务管理等
+	使用动态代理
+		## 代理（面向切面的Advice使用了代理模式）
+			首先代理是指由代理类做一些预处理而真正的执行逻辑依旧是被代理类
+			适配器模式：与之类似。但区别是被适配的类的接口和目标类的接口不一致，所以需要使用适配器类来达到接口兼容的作用
+			### 静态代理：是指在编译期就存在的代理类，在代理类中持有一个被代理类。缺点是：当接口变化的时候不仅所有的实现类需要变化，所有的代理类也需要变化
+			###动态代理：
+				1、JDK的动态代理：基于接口的代理模式
+					代理类需要实现java的InvocationHandler中的public object invoke(Object obj, Method method, Object []args)方法
+					然后通过Proxy.newProxyInstance(getClassLoader, getInterfaces, 代理类实例)反射得到被代理对象去调用方法。
+					缺点是：被代理类需要有接口
+				2、第三方的CGlib代理：基于继承的代理模式
+					代理类需要实现MethodInterceptor接口实现其public object intercept(Object obj, Method method, Object []args, MethodProxy proxy）方法
+					public class CGLIb implements MethodInterceptor {
+						public Object intercept(Object obj, Method method, Object args[], MethodProxy proxt) {
+							System.out.println("開始");
+						   Object object = proxt.invokeSuper(obj, args);
+							System.out.println("結束");
+							return object;
+						}
+						public static void main(String args[]) {
+							Enhacer enhacer = new Enhancer();
+							enhacer.setSuperclass(HelloWord1.class);
+							enhacer.setCallBack(new CGLIb());
+							HelloWord1 helloWord1 = (HelloWord1) enhancer.create();
+							helloWord1.print();
+
+						}
+					}
+	分为Before：前置通知、AfterRunning：正常运行后通知、After：运行完成后通知（无论是正常的还是不正常的结束）、AfterThrowing：抛出异常后通知、Around：环绕通知
+	两种方式：1）注解注入@AspectJ： 静态代理，编译时期的代理
+	          2）xml配置：动态代理
+				```xml
+					<!-- 首行切入点和通知的类都需要交给spring管理 -->
+					<bean id="productDaoImpl" class="cn.njutzhangjie.dao.impl.ProductDaoImpl"/>
+					<bean id="check" class="cn.njutzhangjie.aspect.Check"/>
+					<!-- 配置切面 -->
+					<aop:config>
+						<!--切入点  -->
+						<aop:pointcut expression="execution(* cn.njutzhangjie.dao.impl.ProductDaoImpl.save(..))" id="pointcut"/>
+						<!-- 配置通知，ref表示通知所在的类 -->
+						<aop:aspect ref="check">
+							<!--表示在切入点之前执行chekc方法  -->
+							<aop:before method="check" pointcut-ref="pointcut"/>
+					</aop:aspect>
+
+## bean
+	bean是由ICO容器创建、初始化和管理的java对象
+ ## bean的作用域：
+	1、单例：默认在spring的ioc容器中仅存在一个bean实例，在任何需要id与该bean对象相匹配的地方返回的都是同一个bean实例。在容器启动的时候就会创建
+		<bean id="SingletonBean" class="com.spring.demo.SingletonBean" scope="singleton"></bean> 缺省的scope都是指单例
+	2、原型：表明每次通过getBean()方法获取Bean时，容器都会新创建一个实例对象。对有状态的bean应该使用prototype作用域，而对无状态的bean则应该使用singleton作用域。
+	3、request对象：每一次Http请求都会新建一个request对象，请求处理结束后会自动销毁，仅适用web程序。
+	4、session：每一个会话都会新建一个bean对象，会话内的多个请求共享该对象，会话结束后对象消失
+	5、globalsession：一个bean的作用域仅限于一个ServletContext中。
+ ## bean的生命周期
+	启动查找到bean并进行实例化，然后属性注入引用和值；
+	查找相关的Aware接口，决定是否进行配置引入（
+		BeanNameaware: 将id值传给setBeanName方法
+		BeanFactoryAware：调用setBeanFactory()方法引入BeanFactory容器
+		ApplicationContextAware：调用setApplicationContext()引入bean所在的应用上下文）
+	如果实现了BeanPostProcessor，进行前置处理
+	调用InitializingBean接口的afterProperties()方法或者自定义的init-method方法进行初始化
+	使用
+	调用DisposableBean接口的destroy()方法或者自定义的destroy-method进行销毁
+	步骤：
+		1、spring启动，查找加载需要被spring管理的bean，进行bean的实例化（启动的时候找到bean并进行实例化）
+		2、bean实例化之后将bean的引入和值注入到bean的属性中
+		3、如果bean实现了BeanNameAware接口的话，将bean的id传递给setBeanName()方法
+		4、如果bean实现了BeanFactoryAware接口的话，将调用setBeanFactory()方法，将bean的Factory容器引入
+		5、如果实现了ApplaicationContextAware接口的话，调用bean的setApplicationContext()方法，将bean所在应用上下文引入进来
+		5、如果实现了BeanPostProcessor接口，Spring将调用他们的postProcessBeforeInitialization()方法
+		6、如果Bean 实现了InitializingBean接口，Spring将调用他们的afterPropertiesSet()方法。类似的，如果bean使用init-method声明了初始化方法，该方法也会被调用
+		7、如果Bean 实现了BeanPostProcessor接口，Spring就将调用他们的postProcessAfterInitialization()方法。
+		8、此时，Bean已经准备就绪，可以被应用程序使用了。他们将一直驻留在应用上下文中，直到应用上下文被销毁。
+		9、如果bean实现了DisposableBean接口，Spring将调用它的destory()接口方法，同样，如果bean使用了destory-method 声明销毁方法，该方法也会被调用。
+##BeanFactory和ApplicationContext
+	BeanFactory：spring的最底层接口，包含了bean的定义，读取bean的配置，管理bean的加载实例化，控制bean的生命周期，维护bean之间的依赖关系。
+		在加载的时候不进行bean的实例化，在运行中取bean的时候才会进行实例化。
+	ApplicationContext：实现了BeanFactory接口，但是他在应用启动的时候就会对所有的bean对象进行实例化
+	前者延时初始化，能够节省系统资源，但会导致不能发现spring存在的一些配置问题；而后者一次性加载，启动的时候会比较慢
+	而且Application还提供了一些特殊的功能：比如继承了MessageSource，支持国际化以及统一的资源文件访问方式等。
+### ApplicationContext常用实现
+	1、 ClassPathXmlApplicationContext：用于加载类路径上的配置文件，没有的话，加载不了
+	2、FileSystemXmlApplicationContext：用于加载磁盘任意路径下的配置文件（需要在构造函数内提供磁盘文件路径）
+	3、WebXmlApplicationContext：用于加载web的配置文件，该文件包含web应用的所有bean
+### Spring之ContextLoaderListener的作用
+## 事务管理
